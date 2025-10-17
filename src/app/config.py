@@ -1,0 +1,33 @@
+import os
+
+POSTGRES_DB = os.getenv("POSTGRES_DB", "agroland_dev")
+POSTGRES_USER = os.getenv("POSTGRES_USER", "agro")
+POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "7DSq+bKU5FcVFVc\\")
+POSTGRES_HOST = os.getenv("POSTGRES_HOST", "localhost")
+POSTGRES_PORT = os.getenv("POSTGRES_PORT", "5432")
+DB_DSN = f"postgresql+asyncpg://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}"
+
+import os
+
+LOGGING_FORMAT = "%(asctime)s | %(levelname)s | %(name)s | %(threadName)s | %(message)s"
+
+SECRET_KEY = 'j3h6xuhcmays446h6f6zfw8sqx9ucfumyzxfppz5rdczkbzux5t9ezzezf7yauzg'
+ACCESS_TOKEN_EXPIRATION = 300
+REFRESH_TOKEN_EXPIRATION = 604800
+
+REDIS_SERVICE_HOST = "localhost"
+REDIS_SERVICE_PORT = 6379
+REDIS_SERVICE_DB = os.environ.get("REDIS_SERVICE_DB", 0)
+
+RABBITMQ_HOST = os.environ.get("RABBITMQ_SERVICE_HOST")
+RABBITMQ_PORT = os.environ.get("RABBITMQ_SERVICE_PORT")
+RABBITMQ_USER_NAME = os.environ.get("RABBITMQ_SERVICE_USER_NAME")
+RABBITMQ_USER_PASSWORD = os.environ.get("RABBITMQ_SERVICE_USER_PASSWORD")
+RABBITMQ_AMQP = f"amqp://{RABBITMQ_USER_NAME}:{RABBITMQ_USER_PASSWORD}@{RABBITMQ_HOST}:{RABBITMQ_PORT}/"
+
+SMS_SERVICE = os.environ.get("SMS_SERVICE", "DEV")
+SMS_LIFE_TIME = os.environ.get("SMS_LIFE_TIME", 59)
+
+SERVICE_PORT = 60004
+SERVICE_WORKER_COUNT = 4
+SERVICE_IP = "0.0.0.0"

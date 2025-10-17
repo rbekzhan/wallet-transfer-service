@@ -1,0 +1,29 @@
+[tool.poetry]
+name = "app"
+version = "0.1.0"
+description = ""
+authors = ["Agrolend"]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.113.0"
+sqlalchemy = "^2.0.34"
+alembic = "^1.13.2"
+uvicorn = "^0.30.6"
+starlette = "^0.38.4"
+asyncpg = "^0.29.0"
+greenlet = "^3.0.3"
+marshmallow = "^3.22.0"
+pyjwt = "^2.10.1"
+redis = "^6.4.0"
+passlib = "^1.7.4"
+attr = "^0.3.2"
+
+[tool.poetry.scripts]
+run_api = "app.main:start"
+migrate = "app.main:migrate"
+create_migrate = "app.main:create_migrations"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
