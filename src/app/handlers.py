@@ -5,15 +5,15 @@ from app.db_manager.wallet_transfer_db_manager import WalletTransferDBManager as
 from fastapi import Request, HTTPException, BackgroundTasks
 
 from app.decode_auth_header import decode_auth_header
-from app.schemas import VerifyCodeEvent, TransferCreate, AccountCreate
+from app.schemas import VerifyCodeEvent, TransferCreate, AccountCreate, SendSmsRequest
 
 
 async def read_root():
     return {"ver": "0.0.1"}
 
 
-async def send_sms_user(request: Request):
-    data = await request.json()
+async def send_sms_user(data: SendSmsRequest):
+    data = data.model_dump()
     phone_number = data.get("phone_number", "").lstrip("+")
     if not phone_number:
         raise HTTPException(status_code=400, detail="Phone number is required")
@@ -21,16 +21,18 @@ async def send_sms_user(request: Request):
     return await action_create_sms(phone_number=phone_number, db_manager=DBManager())
 
 
-async def verify_code(request: Request):
-    data = await request.json()
-    event = VerifyCodeEvent(**data)
+async def verify_code(event: VerifyCodeEvent, request: Request):
+    phone_number = event.phone_number.lstrip("+")
+
+    event.phone_number = phone_number
     return await action_verify_sms(event, db_manager=DBManager())
+
 
 
 async def create_account(data: AccountCreate, request: Request):
     auth_header = request.headers.get("Authorization")
     user_id = decode_auth_header(auth_header)
-    data = data.dict()
+    data = data.model_dump()
     currency = data.get("currency")
     initial_balance = data.get("initial_balance", 0)
 
@@ -50,7 +52,7 @@ async def create_transfer(data: TransferCreate, request: Request, background_tas
 
     return await action_create_transfer(
         user_id=user_id,
-        data=data.dict(),
+        data=data.model_dump(),
         db_manager=DBManager(),
         background_tasks=background_tasks
     )

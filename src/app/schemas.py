@@ -1,13 +1,34 @@
-from pydantic import BaseModel, UUID4, Field, condecimal, constr
-from typing import Optional
+from pydantic import BaseModel, UUID4, Field, condecimal, constr, ConfigDict
+from typing import Optional, Annotated
+
 
 class VerifyCodeEvent:
     def __init__(self, code: str, phone_number: str):
         self.code = code
         self.phone_number = phone_number
 
-class SmsRequest(BaseModel):
-    phone_number: str
+
+class SendSmsRequest(BaseModel):
+    """Схема запроса для отправки SMS-кода пользователю"""
+
+    phone_number: Annotated[
+        str,
+        Field(
+            min_length=10,
+            max_length=15,
+            pattern=r"^\+?\d+$",
+            description="Номер телефона пользователя (можно с +, только цифры)"
+        )
+    ]
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "phone_number": "+77472095672"
+            }
+        }
+    )
+
 
 
 class VerifyCodeEvent(BaseModel):
@@ -35,6 +56,34 @@ class TransferCreate(BaseModel):
                 "source_amount": 10.0
             }
         }
+
+class VerifyCodeEvent(BaseModel):
+    """Схема запроса для проверки SMS-кода"""
+    phone_number: Annotated[
+        str,
+        Field(
+            min_length=10,
+            max_length=15,
+            pattern=r"^\+?\d+$",
+            description="Номер телефона пользователя (только цифры, можно с +)"
+        )
+    ]
+    code: Annotated[
+        str,
+        Field(
+            min_length=4,
+            max_length=6,
+            description="Код подтверждения, отправленный пользователю"
+        )
+    ]
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "phone_number": "+77472095672",
+                "code": "1111"
+            }
+        }
+    )
 
 
 class AccountCreate(BaseModel):
