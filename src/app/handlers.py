@@ -2,10 +2,10 @@ from app.actions import (
 
     action_create_sms, action_verify_sms, action_create_account, action_create_transfer)
 from app.db_manager.wallet_transfer_db_manager import WalletTransferDBManager as DBManager
-from fastapi import Request
+from fastapi import Request, HTTPException, BackgroundTasks
 
 from app.decode_auth_header import decode_auth_header
-from app.schemas import VerifyCodeEvent
+from app.schemas import VerifyCodeEvent, TransferCreate, AccountCreate
 
 
 async def read_root():
@@ -15,6 +15,9 @@ async def read_root():
 async def send_sms_user(request: Request):
     data = await request.json()
     phone_number = data.get("phone_number", "").lstrip("+")
+    if not phone_number:
+        raise HTTPException(status_code=400, detail="Phone number is required")
+
     return await action_create_sms(phone_number=phone_number, db_manager=DBManager())
 
 
@@ -24,13 +27,12 @@ async def verify_code(request: Request):
     return await action_verify_sms(event, db_manager=DBManager())
 
 
-async def create_account(request: Request):
+async def create_account(data: AccountCreate, request: Request):
     auth_header = request.headers.get("Authorization")
     user_id = decode_auth_header(auth_header)
-    data = await request.json()
+    data = data.dict()
     currency = data.get("currency")
     initial_balance = data.get("initial_balance", 0)
-    # user_id = "122c5f76-779e-438e-bf3d-aa9645b1ec83"  # Из middleware авторизации
 
     return await action_create_account(
         user_id=user_id,
@@ -39,17 +41,16 @@ async def create_account(request: Request):
         db_manager=DBManager()
     )
 
-async def create_transfer(request: Request):
+async def create_transfer(data: TransferCreate, request: Request, background_tasks: BackgroundTasks):
     """
     Обработчик API для перевода между счетами.
     """
     auth_header = request.headers.get("Authorization")
     user_id = decode_auth_header(auth_header)
-    data = await request.json()
-    # user_id = "122c5f76-779e-438e-bf3d-aa9645b1ec83"  # из твоего middleware авторизации
 
     return await action_create_transfer(
         user_id=user_id,
-        data=data,
-        db_manager=DBManager()
+        data=data.dict(),
+        db_manager=DBManager(),
+        background_tasks=background_tasks
     )

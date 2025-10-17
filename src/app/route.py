@@ -7,7 +7,10 @@ from app.handlers import send_sms_user, verify_code, create_account, create_tran
 
 app = FastAPI()
 
+import logging
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 # TODO security issue.
 origins = ["*"]
 

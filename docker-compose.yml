@@ -3,33 +3,47 @@ version: "3.8"
 services:
   postgres:
     image: postgres:15
-    container_name: postgres_agroland
+    container_name: postgres_wallet
     restart: always
     environment:
-      POSTGRES_DB: agroland_dev
-      POSTGRES_USER: agro
-      POSTGRES_PASSWORD: 7DSq+bKU5FcVFVc\
+      POSTGRES_DB: wallet_dev
+      POSTGRES_USER: wallet
+      POSTGRES_PASSWORD: 7DSq+bKU5FcVFVc
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - agroland_network
+      - wallet_network
 
   redis:
     image: redis:7
-    container_name: redis_agroland
+    container_name: redis_wallet
     restart: always
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
     networks:
-      - agroland_network
+      - wallet_network
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    networks:
+      - wallet_network
+
 volumes:
   postgres_data:
   redis_data:
 
 networks:
-  agroland_network:
+  wallet_network:
     driver: bridge

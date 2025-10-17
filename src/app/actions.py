@@ -4,8 +4,9 @@ from decimal import Decimal
 import jwt
 import uuid
 
-from fastapi import HTTPException
+from fastapi import HTTPException, BackgroundTasks
 
+from app.db_manager.rabbit.producer import publish_event
 from app.db_manager.tables import TxStatus
 from app.fees import calc_fee, get_fee
 from app.rates_mock import RateServiceMock
@@ -150,7 +151,7 @@ async def action_create_account(user_id, currency: str, initial_balance: float, 
     return {"message": "Account created successfully", "account": account}
 
 
-async def action_create_transfer(user_id, data: dict, db_manager: DBManager):
+async def action_create_transfer(user_id, data: dict, db_manager: DBManager, background_tasks: BackgroundTasks):
     """
     Выполняет перевод между счетами с конвертацией и комиссией.
     """
@@ -169,6 +170,7 @@ async def action_create_transfer(user_id, data: dict, db_manager: DBManager):
         raise HTTPException(404, detail="Account not found")
 
     if str(src["user_id"]) != user_id:
+        logger.warning(f"Account not found: from={from_account_id}, to={to_account_id}")
         raise HTTPException(403, detail="Cannot transfer from another user's account")
 
     if not src["is_active"] or not dst["is_active"]:
@@ -215,7 +217,22 @@ async def action_create_transfer(user_id, data: dict, db_manager: DBManager):
             fee_amount=fee_amount,
             idem_key=None,
         )
-        print('VBVBVVBVBVBVBVB')
+
+        background_tasks.add_task(
+            publish_event,
+            "transfer_completed",
+            {
+                "user_id": user_id,
+                "from": str(from_account_id),
+                "to": str(to_account_id),
+                "amount": float(source_amount),
+                "currency_from": src["currency"],
+                "currency_to": dst["currency"],
+                "target_amount": float(target_amount),
+                "status": TxStatus.completed,
+            },
+        )
+
         return {
             "status": TxStatus.completed,
             "transfer": {
